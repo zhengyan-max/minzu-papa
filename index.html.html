@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>民族拼布计算器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ==================== 基础重置与全局样式 ==================== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            background: linear-gradient(135deg, #fdf6e3 0%, #f5e9d0 100%);
+            color: #5a3921;
+            line-height: 1.5;
+            padding: 12px;
+            min-height: 100vh;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 100%;
+            margin: 8px auto;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(160, 120, 80, 0.1);
+            padding: 20px;
+            border: 1px solid #e8d4b5;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ==================== 页头 ==================== */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0c9ac;
+        }
+        h1 {
+            color: #8b4513;
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .subtitle {
+            color: #a0785a;
+            font-size: 0.9rem;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        /* ==================== 选项卡 ==================== */
+        .tab-container { margin-bottom: 8px; }
+        .tabs {
+            display: flex;
+            background: #f5ede1;
+            border-radius: 10px;
+            padding: 6px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            flex: 1;
+            min-width: 110px;
+            padding: 12px 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #8b5a2b;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .tab-btn i { font-size: 1.1rem; }
+        .tab-btn.active {
+            background: #d4a574;
+            color: white;
+            box-shadow: 0 2px 8px rgba(212, 165, 116, 0.3);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ==================== 面板样式 ==================== */
+        .panel {
+            background: #fbf7f0;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #e8d9c3;
+        }
+        .panel-title {
+            color: #8b4513;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0e2cd;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ==================== 图案库样式 ==================== */
+        .pattern-library {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .pattern-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid #f0e2cd;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.03);
+        }
+        .pattern-card.active {
+            border-color: #8b4513;
+            background: #fffbf5;
+        }
+        .pattern-icon {
+            font-size: 1.8rem;
+            color: #b5834f;
+            margin-bottom: 10px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pattern-name {
+            font-weight: bold;
+            color: #8b5a2b;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+        .pattern-desc {
+            color: #a0785a;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        /* ==================== 画布区域 ==================== */
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            background: #f9f4ea;
+            border-radius: 10px;
+            border: 1px solid #e0c9ac;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        .canvas-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ==================== 控制栏 ==================== */
+        .control-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .btn {
+            padding: 10px 8px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.8rem;
+        }
+        .btn i { font-size: 1rem; }
+        .btn-primary {
+            background: linear-gradient(to right, #c19a6b, #b5834f);
+            color: white;
+        }
+        .btn-secondary {
+            background: #e9d7c0;
+            color: #8b5a2b;
+        }
+        .btn-danger {
+            background: #ef9a9a;
+            color: #c62828;
+        }
+        .btn-success {
+            background: #a5d6a7;
+            color: #2e7d32;
+        }
+        .btn-info {
+            background: #90caf9;
+            color: #1565c0;
+        }
+
+        /* ==================== 工具选择 ==================== */
+        .tool-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        .tool-btn {
+            padding: 10px;
+            background: #e9d7c0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #7a5c3c;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            font-size: 0.8rem;
+        }
+        .tool-btn.active {
+            background: #d4a574;
+            color: white;
+            border: 2px solid #b5834f;
+        }
+
+        /* ==================== 上传区域 ==================== */
+        .upload-area {
+            border: 2px dashed #d4b483;
+            border-radius: 10px;
+            padding: 20px 12px;
+            text-align: center;
+            background: #fbf6f0;
+            margin-bottom: 15px;
+        }
+        .upload-icon {
+            font-size: 2.5rem;
+            color: #c19a6b;
+            margin-bottom: 10px;
+        }
+
+        /* ==================== 参数设置 ==================== */
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .param-group {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #f0e2cd;
+        }
+        .param-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #8b5a2b;
+            font-size: 0.85rem;
+        }
+        .param-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0c9ac;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            background: #fffefc;
+        }
+
+        /* ==================== 计算结果 ==================== */
+        .result-section {
+            background: #f0e6d6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px dashed #c19a6b;
+            display: none;
+        }
+        .result-section.active { display: block; }
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .result-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #8b4513;
+            margin: 10px 0;
+        }
+        .result-label {
+            color: #a0785a;
+            font-size: 0.8rem;
+        }
+
+        /* ==================== 响应式设计 ==================== */
+        @media (max-width: 480px) {
+            .container { padding: 15px; }
+            h1 { font-size: 1.3rem; }
+            .pattern-library { grid-template-columns: repeat(2, 1fr); }
+            .param-grid { grid-template-columns: 1fr; }
+            .result-grid { grid-template-columns: 1fr; }
+            .control-bar { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-vector-square"></i> 民族拼布计算器</h1>
+            <p class="subtitle">教材配套工具 · 手机端优化版</p>
+        </header>
+
+        <div class="tab-container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="patternLib">
+                    <i class="fas fa-th-large"></i>
+                    <span>图案库</span>
+                </button>
+                <button class="tab-btn" data-tab="customPattern">
+                    <i class="fas fa-upload"></i>
+                    <span>自定义</span>
+                </button>
+                <button class="tab-btn" data-tab="standardCalc">
+                    <i class="fas fa-ruler-combined"></i>
+                    <span>标准形状</span>
+                </button>
+            </div>
+            
+            <!-- 图案库计算 -->
+            <div id="patternLib" class="tab-content active">
+                <div class="panel">
+                    <div class="pattern-library" id="patternLibrary"></div>
+                </div>
+                
+                <div class="panel">
+                    <h3 class="panel-title"><i class="fas fa-edit"></i> 调整轮廓</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="gridCanvas" class="canvas-layer"></canvas>
+                        <canvas id="drawCanvas" class="canvas-layer"></canvas>
+                    </div>
+                    
+                    <div class="tool-selector">
+                        <button class="tool-btn active" data-tool="select">
+                            <i class="fas fa-mouse-pointer"></i>
+                            <span>选择顶点</span>
+                        </button>
+                        <button class="tool-btn" data-tool="polygon">
+                            <i class="fas fa-draw-polygon"></i>
+                            <span>添加顶点</span>
+                        </button>
+                    </div>
+                    
+                    <div class="control-bar">
+                        <button class="btn btn-secondary" id="btnRemovePoint">
+                            <i class="fas fa-minus-circle"></i>
+                            <span>删除顶点</span>
+                        </button>
+                        <button class="btn btn-danger" id="btnClearAll">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>清空重绘</span>
+                        </button>
+                        <button class="btn btn-success" id="btnAutoTrace">
+                            <i class="fas fa-robot"></i>
+                            <span>智能优化</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 自定义图案 -->
+            <div id="customPattern" class="tab-content">
+                <div class="panel">
+                    <h3 class="panel-title"><i class="fas fa-file-upload"></i> 上传图案</h3>
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                        <button class="btn btn-primary" id="btnBrowse">
+                            <i class="fas fa-folder-open"></i>
+                            <span>选择图片</span>
+                        </button>
+                        <div style="margin-top: 15px; display: none;" id="imageControls">
+                            <button class="btn btn-danger" id="btnRemoveImage">
+                                <i class="fas fa-times"></i>
+                                <span>移除图片</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="control-bar">
+                        <button class="btn btn-success" id="btnAutoDetect">
+                            <i class="fas fa-brain"></i>
+                            <span>智能提取</span>
+                        </button>
+                        <button class="btn btn-info" id="btnManualMode">
+                            <i class="fas fa-hand-pointer"></i>
+                            <span>手动绘制</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="panel" id="customCanvasPanel" style="display: none;">
+                    <h3 class="panel-title"><i class="fas fa-edit"></i> 绘制轮廓</h3>
+                    <div class="canvas-wrapper">
+                        <canvas id="customGridCanvas" class="canvas-layer"></canvas>
+                        <canvas id="customDrawCanvas" class="canvas-layer"></canvas>
+                    </div>
+                    
+                    <div class="tool-selector">
+                        <button class="tool-btn active" data-tool="select">
+                            <i class="fas fa-mouse-pointer"></i>
+                            <span>选择顶点</span>
+                        </button>
+                        <button class="tool-btn" data-tool="polygon">
+                            <i class="fas fa-draw-polygon"></i>
+                            <span>添加顶点</span>
+                        </button>
+                    </div>
+                    
+                    <div class="control-bar">
+                        <button class="btn btn-secondary" id="customBtnRemovePoint">
+                            <i class="fas fa-minus-circle"></i>
+                            <span>删除顶点</span>
+                        </button>
+                        <button class="btn btn-danger" id="customBtnClearAll">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>清空重绘</span>
+                        </button>
+                        <button class="btn btn-success" id="customBtnCloseContour">
+                            <i class="fas fa-expand-alt"></i>
+                            <span>闭合图形</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 标准形状计算器 -->
+            <div id="standardCalc" class="tab-content">
+                <div class="panel">
+                    <h3 class="panel-title"><i class="fas fa-shapes"></i> 标准形状</h3>
+                    <div class="param-grid">
+                        <div class="param-group">
+                            <label for="shapeType">选择形状</label>
+                            <select id="shapeType">
+                                <option value="square">正方形</option>
+                                <option value="rectangle">长方形</option>
+                                <option value="triangle">三角形</option>
+                                <option value="diamond">菱形</option>
+                                <option value="hexagon">六边形</option>
+                            </select>
+                        </div>
+                        <div class="param-group">
+                            <label for="stdSizeA">尺寸 A (cm)</label>
+                            <input type="number" id="stdSizeA" min="1" step="0.1" value="10">
+                        </div>
+                        <div class="param-group">
+                            <label for="stdSizeB">尺寸 B (cm)</label>
+                            <input type="number" id="stdSizeB" min="1" step="0.1" value="5" disabled>
+                        </div>
+                        <div class="param-group">
+                            <label for="stdSeam">缝份宽度 (cm)</label>
+                            <input type="number" id="stdSeam" min="0" step="0.1" value="0.7">
+                        </div>
+                        <div class="param-group">
+                            <label for="stdCount">布片数量</label>
+                            <input type="number" id="stdCount" min="1" step="1" value="20">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="btnStdCalculate" style="width: 100%;">
+                        <i class="fas fa-calculator"></i>
+                        <span>计算用量</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 参数设置 -->
+        <div class="panel">
+            <h3 class="panel-title"><i class="fas fa-sliders-h"></i> 计算参数</h3>
+            <div class="param-grid">
+                <div class="param-group">
+                    <label for="scaleFactor">比例尺 (像素:厘米)</label>
+                    <input type="number" id="scaleFactor" min="0.01" step="0.01" value="0.1">
+                </div>
+                <div class="param-group">
+                    <label for="seamAllowance">缝份宽度 (cm)</label>
+                    <input type="number" id="seamAllowance" min="0" step="0.1" value="1.0">
+                </div>
+                <div class="param-group">
+                    <label for="fabricWidth">布料幅宽 (cm)</label>
+                    <input type="number" id="fabricWidth" min="10" step="1" value="110">
+                </div>
+                <div class="param-group">
+                    <label for="wastePercent">损耗比例 (%)</label>
+                    <input type="number" id="wastePercent" min="0" max="50" step="1" value="10">
+                </div>
+            </div>
+            <button class="btn btn-primary" id="btnCalculate" style="width: 100%;">
+                <i class="fas fa-calculator"></i>
+                <span>开始计算</span>
+            </button>
+        </div>
+
+        <!-- 计算结果 -->
+        <div class="result-section" id="resultSection">
+            <h3 class="panel-title"><i class="fas fa-chart-bar"></i> 计算结果</h3>
+            <div class="result-grid">
+                <div class="result-card">
+                    <div class="result-label">净面积</div>
+                    <div class="result-value" id="netArea">0</div>
+                    <div class="result-label">cm²</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">含缝份面积</div>
+                    <div class="result-value" id="totalArea">0</div>
+                    <div class="result-label">cm²</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">布料长度</div>
+                    <div class="result-value" id="fabricLength">0</div>
+                    <div class="result-label">厘米</div>
+                </div>
+                <div class="result-card">
+                    <div class="result-label">最终用量</div>
+                    <div class="result-value" id="finalFabric">0</div>
+                    <div class="result-label">米</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentTab = 'patternLib';
+        let selectedPatternId = null;
+        let polygonPoints = [];
+        let customPolygonPoints = [];
+        let isDragging = false;
+        let dragIndex = -1;
+        let currentTool = 'select';
+        let customCurrentTool = 'select';
+        
+        let customUploadedImage = null;
+        let customImageScale = 1.0;
+        let customImageOffset = { x: 0, y: 0 };
+        
+        // 画布变量
+        let canvas, ctx, gridCanvas, gridCtx;
+        let customCanvas, customCtx, customGridCanvas, customGridCtx;
+        let canvasWidth = 300, canvasHeight = 200;
+        let customCanvasWidth = 300, customCanvasHeight = 200;
+
+        // 民族图案数据库
+        const ethnicPatterns = [
+            {
+                id: 'miao_vortex',
+                name: '苗族涡纹',
+                icon: 'fas fa-yin-yang',
+                description: '螺旋形纹样',
+                defaultPoints: [
+                    {x: 150, y: 100}, {x: 130, y: 80}, {x: 110, y: 70},
+                    {x: 90, y: 75}, {x: 80, y: 90}, {x: 85, y: 110},
+                    {x: 100, y: 125}, {x: 120, y: 130}, {x: 140, y: 120}
+                ]
+            },
+            {
+                id: 'dong_octagonal',
+                name: '侗族八角花',
+                icon: 'fas fa-star',
+                description: '八角几何花纹',
+                defaultPoints: [
+                    {x: 150, y: 100}, {x: 170, y: 80}, {x: 190, y: 100},
+                    {x: 190, y: 120}, {x: 170, y: 140}, {x: 150, y: 140},
+                    {x: 130, y: 120}, {x: 130, y: 100}
+                ]
+            },
+            {
+                id: 'bai_butterfly',
+                name: '白族蝴蝶纹',
+                icon: 'fas fa-butterfly',
+                description: '蝴蝶变形纹样',
+                defaultPoints: [
+                    {x: 150, y: 100}, {x: 135, y: 80}, {x: 120, y: 75},
+                    {x: 105, y: 85}, {x: 100, y: 105}, {x: 110, y: 125},
+                    {x: 130, y: 135}, {x: 150, y: 140}, {x: 170, y: 135},
+                    {x: 190, y: 125}, {x: 200, y: 105}, {x: 195, y: 85},
+                    {x: 180, y: 75}, {x: 165, y: 80}
+                ]
+            },
+            {
+                id: 'zhuang_fish',
+                name: '壮族鱼纹',
+                icon: 'fas fa-fish',
+                description: '抽象鱼形纹',
+                defaultPoints: [
+                    {x: 150, y: 100}, {x: 135, y: 85}, {x: 120, y: 80},
+                    {x: 105, y: 85}, {x: 95, y: 100}, {x: 100, y: 120},
+                    {x: 115, y: 135}, {x: 135, y: 140}, {x: 155, y: 135},
+                    {x: 170, y: 120}, {x: 175, y: 100}, {x: 165, y: 85}
+                ]
+            },
+            {
+                id: 'yi_square',
+                name: '彝族回字纹',
+                icon: 'fas fa-border-all',
+                description: '回字形几何纹',
+                defaultPoints: [
+                    {x: 110, y: 80}, {x: 190, y: 80},
+                    {x: 190, y: 120}, {x: 110, y: 120}
+                ]
+            },
+            {
+                id: 'naxi_cloud',
+                name: '纳西族云纹',
+                icon: 'fas fa-cloud',
+                description: '云形纹样',
+                defaultPoints: [
+                    {x: 130, y: 100}, {x: 150, y: 85}, {x: 170, y: 100},
+                    {x: 165, y: 115}, {x: 150, y: 125}, {x: 135, y: 115}
+                ]
+            }
+        ];
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        function initApp() {
+            initPatternLibrary();
+            initCanvases();
+            initCustomCanvases();
+            initEventListeners();
+            switchTab('patternLib');
+            selectPattern(ethnicPatterns[0].id);
+        }
+
+        function initPatternLibrary() {
+            const container = document.getElementById('patternLibrary');
+            container.innerHTML = '';
+            
+            ethnicPatterns.forEach(pattern => {
+                const card = document.createElement('div');
+                card.className = 'pattern-card';
+                card.dataset.pattern = pattern.id;
+                card.innerHTML = `
+                    <div class="pattern-icon"><i class="${pattern.icon}"></i></div>
+                    <div class="pattern-name">${pattern.name}</div>
+                    <div class="pattern-desc">${pattern.description}</div>
+                `;
+                card.addEventListener('click', () => selectPattern(pattern.id));
+                container.appendChild(card);
+            });
+        }
+
+        function initCanvases() {
+            gridCanvas = document.getElementById('gridCanvas');
+            canvas = document.getElementById('drawCanvas');
+            
+            const wrapper = document.querySelector('#patternLib .canvas-wrapper');
+            canvasWidth = wrapper.clientWidth;
+            canvasHeight = wrapper.clientHeight;
+            
+            [gridCanvas, canvas].forEach(c => {
+                c.width = canvasWidth;
+                c.height = canvasHeight;
+            });
+            
+            gridCtx = gridCanvas.getContext('2d');
+            ctx = canvas.getContext('2d');
+            drawGrid(gridCtx, canvasWidth, canvasHeight);
+        }
+
+        function initCustomCanvases() {
+            customGridCanvas = document.getElementById('customGridCanvas');
+            customCanvas = document.getElementById('customDrawCanvas');
+            
+            const wrapper = document.querySelector('#customCanvasPanel .canvas-wrapper');
+            if (wrapper) {
+                customCanvasWidth = wrapper.clientWidth;
+                customCanvasHeight = wrapper.clientHeight;
+                
+                [customGridCanvas, customCanvas].forEach(c => {
+                    c.width = customCanvasWidth;
+                    c.height = customCanvasHeight;
+                });
+                
+                customGridCtx = customGridCanvas.getContext('2d');
+                customCtx = customCanvas.getContext('2d');
+                drawGrid(customGridCtx, customCanvasWidth, customCanvasHeight);
+            }
+        }
+
+        function drawGrid(context, width, height) {
+            context.strokeStyle = 'rgba(180, 160, 140, 0.1)';
+            context.lineWidth = 0.5;
+            const gridSize = 20;
+            
+            for (let x = 0; x <= width; x += gridSize) {
+                context.beginPath();
+                context.moveTo(x, 0);
+                context.lineTo(x, height);
+                context.stroke();
+            }
+            
+            for (let y = 0; y <= height; y += gridSize) {
+                context.beginPath();
+                context.moveTo(0, y);
+                context.lineTo(width, y);
+                context.stroke();
+            }
+        }
+
+        function initEventListeners() {
+            // 选项卡切换
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tabId = btn.dataset.tab;
+                    switchTab(tabId);
+                });
+            });
+            
+            // 图案库工具选择
+            document.querySelectorAll('#patternLib .tool-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#patternLib .tool-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    currentTool = this.dataset.tool;
+                });
+            });
+            
+            // 图案库控制按钮
+            document.getElementById('btnRemovePoint').addEventListener('click', removeLastVertex);
+            document.getElementById('btnClearAll').addEventListener('click', () => clearDrawing('pattern'));
+            document.getElementById('btnAutoTrace').addEventListener('click', autoTrace);
+            
+            // 自定义页面控制按钮
+            document.getElementById('btnBrowse').addEventListener('click', () => {
+                document.getElementById('imageUpload').click();
+            });
+            document.getElementById('imageUpload').addEventListener('change', handleCustomImageUpload);
+            document.getElementById('btnRemoveImage').addEventListener('click', removeCustomUploadedImage);
+            document.getElementById('btnAutoDetect').addEventListener('click', autoDetectContour);
+            document.getElementById('btnManualMode').addEventListener('click', switchToManualMode);
+            
+            // 自定义绘制页面
+            document.querySelectorAll('#customCanvasPanel .tool-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#customCanvasPanel .tool-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    customCurrentTool = this.dataset.tool;
+                });
+            });
+            
+            document.getElementById('customBtnRemovePoint').addEventListener('click', removeCustomLastVertex);
+            document.getElementById('customBtnClearAll').addEventListener('click', () => clearDrawing('custom'));
+            document.getElementById('customBtnCloseContour').addEventListener('click', closeCustomContour);
+            
+            // 计算按钮
+            document.getElementById('btnCalculate').addEventListener('click', calculateFabric);
+            document.getElementById('btnStdCalculate').addEventListener('click', calculateStandard);
+            document.getElementById('shapeType').addEventListener('change', function() {
+                document.getElementById('stdSizeB').disabled = this.value !== 'rectangle';
+            });
+            
+            // 图案库画布事件
+            canvas.addEventListener('mousedown', handleCanvasMouseDown);
+            canvas.addEventListener('mousemove', handleCanvasMouseMove);
+            canvas.addEventListener('mouseup', handleCanvasMouseUp);
+            canvas.addEventListener('touchstart', handleCanvasTouchStart);
+            canvas.addEventListener('touchmove', handleCanvasTouchMove);
+            canvas.addEventListener('touchend', handleCanvasTouchEnd);
+            
+            // 自定义画布事件
+            customCanvas.addEventListener('mousedown', handleCustomCanvasMouseDown);
+            customCanvas.addEventListener('mousemove', handleCustomCanvasMouseMove);
+            customCanvas.addEventListener('mouseup', handleCustomCanvasMouseUp);
+            customCanvas.addEventListener('touchstart', handleCustomCanvasTouchStart);
+            customCanvas.addEventListener('touchmove', handleCustomCanvasTouchMove);
+            customCanvas.addEventListener('touchend', handleCustomCanvasTouchEnd);
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        function selectPattern(patternId) {
+            selectedPatternId = patternId;
+            const pattern = ethnicPatterns.find(p => p.id === patternId);
+            
+            document.querySelectorAll('.pattern-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.querySelector(`.pattern-card[data-pattern="${patternId}"]`).classList.add('active');
+            
+            polygonPoints = JSON.parse(JSON.stringify(pattern.defaultPoints));
+            redrawCanvas();
+        }
+
+        function redrawCanvas() {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            
+            if (polygonPoints.length > 0) {
+                ctx.beginPath();
+                ctx.moveTo(polygonPoints[0].x, polygonPoints[0].y);
+                
+                for (let i = 1; i < polygonPoints.length; i++) {
+                    ctx.lineTo(polygonPoints[i].x, polygonPoints[i].y);
+                }
+                
+                if (polygonPoints.length > 2) {
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(193, 154, 107, 0.2)';
+                    ctx.fill();
+                }
+                
+                ctx.strokeStyle = '#8b4513';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 绘制顶点
+                ctx.fillStyle = '#8b4513';
+                polygonPoints.forEach(point => {
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+        }
+
+        function redrawCustomCanvas() {
+            customCtx.clearRect(0, 0, customCanvasWidth, customCanvasHeight);
+            
+            // 绘制上传的图片
+            if (customUploadedImage) {
+                customCtx.save();
+                customCtx.translate(customImageOffset.x, customImageOffset.y);
+                customCtx.scale(customImageScale, customImageScale);
+                customCtx.drawImage(customUploadedImage, 0, 0);
+                customCtx.restore();
+            }
+            
+            // 绘制多边形
+            if (customPolygonPoints.length > 0) {
+                customCtx.beginPath();
+                customCtx.moveTo(customPolygonPoints[0].x, customPolygonPoints[0].y);
+                
+                for (let i = 1; i < customPolygonPoints.length; i++) {
+                    customCtx.lineTo(customPolygonPoints[i].x, customPolygonPoints[i].y);
+                }
+                
+                if (customPolygonPoints.length > 2) {
+                    customCtx.closePath();
+                    customCtx.fillStyle = 'rgba(193, 154, 107, 0.2)';
+                    customCtx.fill();
+                }
+                
+                customCtx.strokeStyle = '#8b4513';
+                customCtx.lineWidth = 2;
+                customCtx.stroke();
+                
+                // 绘制顶点
+                customCtx.fillStyle = '#8b4513';
+                customPolygonPoints.forEach((point, index) => {
+                    customCtx.beginPath();
+                    customCtx.arc(point.x, point.y, 5, 0, Math.PI * 2);
+                    customCtx.fill();
+                    
+                    // 显示顶点编号
+                    customCtx.fillStyle = 'white';
+                    customCtx.font = '10px Arial';
+                    customCtx.textAlign = 'center';
+                    customCtx.textBaseline = 'middle';
+                    customCtx.fillText(index + 1, point.x, point.y);
+                    customCtx.fillStyle = '#8b4513';
+                });
+            }
+        }
+
+        // 图案库画布事件处理
+        function handleCanvasMouseDown(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            handleCanvasPoint(x, y);
+        }
+
+        function handleCanvasTouchStart(e) {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            handleCanvasPoint(x, y);
+        }
+
+        function handleCanvasPoint(x, y) {
+            if (currentTool === 'select') {
+                for (let i = 0; i < polygonPoints.length; i++) {
+                    const point = polygonPoints[i];
+                    const distance = Math.sqrt((x - point.x) ** 2 + (y - point.y) ** 2);
+                    if (distance < 10) {
+                        isDragging = true;
+                        dragIndex = i;
+                        return;
+                    }
+                }
+            } else if (currentTool === 'polygon') {
+                polygonPoints.push({x, y});
+                redrawCanvas();
+            }
+        }
+
+        function handleCanvasMouseMove(e) {
+            if (isDragging && dragIndex >= 0) {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                polygonPoints[dragIndex] = {x, y};
+                redrawCanvas();
+            }
+        }
+
+        function handleCanvasTouchMove(e) {
+            if (isDragging && dragIndex >= 0) {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                polygonPoints[dragIndex] = {x, y};
+                redrawCanvas();
+            }
+        }
+
+        function handleCanvasMouseUp() {
+            isDragging = false;
+            dragIndex = -1;
+        }
+
+        function handleCanvasTouchEnd() {
+            isDragging = false;
+            dragIndex = -1;
+        }
+
+        // 自定义画布事件处理
+        function handleCustomCanvasMouseDown(e) {
+            const rect = customCanvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            handleCustomCanvasPoint(x, y);
+        }
+
+        function handleCustomCanvasTouchStart(e) {
+            e.preventDefault();
+            const rect = customCanvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            handleCustomCanvasPoint(x, y);
+        }
+
+        function handleCustomCanvasPoint(x, y) {
+            if (customCurrentTool === 'select') {
+                for (let i = 0; i < customPolygonPoints.length; i++) {
+                    const point = customPolygonPoints[i];
+                    const distance = Math.sqrt((x - point.x) ** 2 + (y - point.y) ** 2);
+                    if (distance < 10) {
+                        isDragging = true;
+                        dragIndex = i;
+                        return;
+                    }
+                }
+            } else if (customCurrentTool === 'polygon') {
+                customPolygonPoints.push({x, y});
+                redrawCustomCanvas();
+            }
+        }
+
+        function handleCustomCanvasMouseMove(e) {
+            if (isDragging && dragIndex >= 0) {
+                const rect = customCanvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                customPolygonPoints[dragIndex] = {x, y};
+                redrawCustomCanvas();
+            }
+        }
+
+        function handleCustomCanvasTouchMove(e) {
+            if (isDragging && dragIndex >= 0) {
+                e.preventDefault();
+                const rect = customCanvas.getBoundingClientRect();
+                const touch = e.touches[0];
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                customPolygonPoints[dragIndex] = {x, y};
+                redrawCustomCanvas();
+            }
+        }
+
+        function handleCustomCanvasMouseUp() {
+            isDragging = false;
+            dragIndex = -1;
+        }
+
+        function handleCustomCanvasTouchEnd() {
+            isDragging = false;
+            dragIndex = -1;
+        }
+
+        function removeLastVertex() {
+            if (polygonPoints.length > 0) {
+                polygonPoints.pop();
+                redrawCanvas();
+            }
+        }
+
+        function removeCustomLastVertex() {
+            if (customPolygonPoints.length > 0) {
+                customPolygonPoints.pop();
+                redrawCustomCanvas();
+            }
+        }
+
+        function clearDrawing(type) {
+            if (confirm('确定要清空当前绘制的图形吗？')) {
+                if (type === 'pattern') {
+                    polygonPoints = [];
+                    redrawCanvas();
+                } else if (type === 'custom') {
+                    customPolygonPoints = [];
+                    redrawCustomCanvas();
+                }
+            }
+        }
+
+        function closeCustomContour() {
+            if (customPolygonPoints.length > 2) {
+                const first = customPolygonPoints[0];
+                const last = customPolygonPoints[customPolygonPoints.length - 1];
+                const distance = Math.sqrt((last.x - first.x) ** 2 + (last.y - first.y) ** 2);
+                
+                if (distance > 5) {
+                    customPolygonPoints.push({x: first.x, y: first.y});
+                }
+                redrawCustomCanvas();
+            }
+        }
+
+        function autoTrace() {
+            if (polygonPoints.length < 3) return;
+            
+            const optimized = [];
+            for (let i = 0; i < polygonPoints.length; i++) {
+                const prev = polygonPoints[(i - 1 + polygonPoints.length) % polygonPoints.length];
+                const current = polygonPoints[i];
+                const next = polygonPoints[(i + 1) % polygonPoints.length];
+                optimized.push({
+                    x: (prev.x + current.x + next.x) / 3,
+                    y: (prev.y + current.y + next.y) / 3
+                });
+            }
+            polygonPoints = optimized;
+            redrawCanvas();
+        }
+
+        function handleCustomImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.match('image.*')) {
+                alert('请选择图片文件');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    customUploadedImage = img;
+                    
+                    const maxWidth = customCanvasWidth - 20;
+                    const maxHeight = customCanvasHeight - 20;
+                    customImageScale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
+                    
+                    customImageOffset.x = (customCanvasWidth - img.width * customImageScale) / 2;
+                    customImageOffset.y = (customCanvasHeight - img.height * customImageScale) / 2;
+                    
+                    document.getElementById('imageControls').style.display = 'block';
+                    document.getElementById('customCanvasPanel').style.display = 'block';
+                    
+                    initCustomCanvases();
+                    redrawCustomCanvas();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removeCustomUploadedImage() {
+            customUploadedImage = null;
+            customPolygonPoints = [];
+            document.getElementById('imageUpload').value = '';
+            document.getElementById('imageControls').style.display = 'none';
+            document.getElementById('customCanvasPanel').style.display = 'none';
+            redrawCustomCanvas();
+        }
+
+        function switchToManualMode() {
+            document.getElementById('customCanvasPanel').style.display = 'block';
+            initCustomCanvases();
+            if (customUploadedImage) {
+                redrawCustomCanvas();
+            }
+            alert('已切换到手动模式，请点击"添加顶点"后，在图片轮廓上点击添加顶点。');
+        }
+
+        function autoDetectContour() {
+            if (!customUploadedImage) {
+                alert('请先上传图片');
+                return;
+            }
+            
+            // 创建临时画布
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCanvas.width = customCanvasWidth;
+            tempCanvas.height = customCanvasHeight;
+            
+            // 绘制图片
+            tempCtx.save();
+            tempCtx.translate(customImageOffset.x, customImageOffset.y);
+            tempCtx.scale(customImageScale, customImageScale);
+            tempCtx.drawImage(customUploadedImage, 0, 0);
+            tempCtx.restore();
+            
+            // 获取图像数据
+            const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+            const data = imageData.data;
+            
+            // 简化的轮廓检测
+            const points = [];
+            const step = 15;
+            const threshold = 100;
+            
+            // 检测边缘点
+            for (let y = step; y < tempCanvas.height - step; y += step) {
+                for (let x = step; x < tempCanvas.width - step; x += step) {
+                    const index = (y * tempCanvas.width + x) * 4;
+                    const r = data[index];
+                    const g = data[index + 1];
+                    const b = data[index + 2];
+                    const brightness = (r + g + b) / 3;
+                    
+                    // 检查周围像素对比度
+                    let edge = false;
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            if (dx === 0 && dy === 0) continue;
+                            const nIndex = ((y + dy) * tempCanvas.width + (x + dx)) * 4;
+                            const nr = data[nIndex];
+                            const ng = data[nIndex + 1];
+                            const nb = data[nIndex + 2];
+                            const nBrightness = (nr + ng + nb) / 3;
+                            if (Math.abs(brightness - nBrightness) > threshold) {
+                                edge = true;
+                                break;
+                            }
+                        }
+                        if (edge) break;
+                    }
+                    
+                    if (edge && brightness < 200) {
+                        points.push({x, y});
+                    }
+                }
+            }
+            
+            if (points.length > 5) {
+                // 对点排序
+                const centerX = points.reduce((s, p) => s + p.x, 0) / points.length;
+                const centerY = points.reduce((s, p) => s + p.y, 0) / points.length;
+                
+                points.sort((a, b) => {
+                    const angleA = Math.atan2(a.y - centerY, a.x - centerX);
+                    const angleB = Math.atan2(b.y - centerY, b.x - centerX);
+                    return angleA - angleB;
+                });
+                
+                customPolygonPoints = points.map(p => ({x: p.x, y: p.y}));
+                redrawCustomCanvas();
+                alert(`检测到 ${points.length} 个轮廓点`);
+            } else {
+                alert('未能自动检测到轮廓，请切换到手动模式绘制');
+            }
+        }
+
+        function calculatePolygonArea(points) {
+            if (points.length < 3) return 0;
+            let area = 0;
+            for (let i = 0; i < points.length; i++) {
+                const j = (i + 1) % points.length;
+                area += points[i].x * points[j].y;
+                area -= points[j].x * points[i].y;
+            }
+            return Math.abs(area) / 2;
+        }
+
+        function calculateFabric() {
+            let currentPoints = currentTab === 'patternLib' ? polygonPoints : customPolygonPoints;
+            
+            if (currentPoints.length < 3) {
+                alert('请先绘制一个闭合图形');
+                return;
+            }
+            
+            const scaleFactor = parseFloat(document.getElementById('scaleFactor').value);
+            const seamAllowance = parseFloat(document.getElementById('seamAllowance').value);
+            const fabricWidth = parseFloat(document.getElementById('fabricWidth').value);
+            const wastePercent = parseFloat(document.getElementById('wastePercent').value) / 100;
+            
+            if (scaleFactor <= 0) {
+                alert('比例尺必须大于0');
+                return;
+            }
+            
+            const pixelArea = calculatePolygonArea(currentPoints);
+            const netArea = pixelArea * scaleFactor * scaleFactor;
+            
+            let perimeter = 0;
+            for (let i = 0; i < currentPoints.length; i++) {
+                const j = (i + 1) % currentPoints.length;
+                const dx = currentPoints[j].x - currentPoints[i].x;
+                const dy = currentPoints[j].y - currentPoints[i].y;
+                perimeter += Math.sqrt(dx * dx + dy * dy);
+            }
+            const actualPerimeter = perimeter * scaleFactor;
+            
+            const seamArea = actualPerimeter * seamAllowance;
+            const totalArea = netArea + seamArea;
+            const fabricLength = totalArea / fabricWidth;
+            const finalLength = fabricLength * (1 + wastePercent);
+            
+            document.getElementById('netArea').textContent = netArea.toFixed(1);
+            document.getElementById('totalArea').textContent = totalArea.toFixed(1);
+            document.getElementById('fabricLength').textContent = fabricLength.toFixed(1);
+            document.getElementById('finalFabric').textContent = (finalLength / 100).toFixed(2);
+            
+            document.getElementById('resultSection').classList.add('active');
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function calculateStandard() {
+            const shapeType = document.getElementById('shapeType').value;
+            const sizeA = parseFloat(document.getElementById('stdSizeA').value);
+            const sizeB = parseFloat(document.getElementById('stdSizeB').value);
+            const seam = parseFloat(document.getElementById('stdSeam').value);
+            const count = parseInt(document.getElementById('stdCount').value);
+            
+            let pieceArea = 0;
+            switch (shapeType) {
+                case 'square':
+                    pieceArea = Math.pow(sizeA + seam * 2, 2);
+                    break;
+                case 'rectangle':
+                    pieceArea = (sizeA + seam * 2) * (sizeB + seam * 2);
+                    break;
+                case 'triangle':
+                    pieceArea = Math.pow(sizeA + seam * 2, 2) / 2;
+                    break;
+                case 'diamond':
+                    pieceArea = Math.pow(sizeA + seam * 2, 2) / 2;
+                    break;
+                case 'hexagon':
+                    pieceArea = (3 * Math.sqrt(3) / 2) * Math.pow(sizeA + seam * 2, 2);
+                    break;
+            }
+            
+            const totalArea = pieceArea * count;
+            const fabricWidth = parseFloat(document.getElementById('fabricWidth').value);
+            const wastePercent = parseFloat(document.getElementById('wastePercent').value) / 100;
+            
+            const fabricLength = totalArea / fabricWidth;
+            const finalLength = fabricLength * (1 + wastePercent);
+            
+            document.getElementById('netArea').textContent = pieceArea.toFixed(1);
+            document.getElementById('totalArea').textContent = totalArea.toFixed(1);
+            document.getElementById('fabricLength').textContent = fabricLength.toFixed(1);
+            document.getElementById('finalFabric').textContent = (finalLength / 100).toFixed(2);
+            
+            document.getElementById('resultSection').classList.add('active');
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
